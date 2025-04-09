@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salida de Producto - Papelería Smarty</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='paginaPrincipal.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='agregar_producto.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Botón para abrir/cerrar el menú -->
+    <div class="menu-toggle" id="menuToggle">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <!-- Menú lateral -->
+    <aside class="menu-lateral" id="menuLateral">
+        <div class="menu-header">
+            <h2>Menú</h2>
+        </div>
+        <ul class="menu-items">
+            <li><a href="/index"><i class="fas fa-home"></i> Inicio</a></li>
+            <li><a href="{{ url_for('ver_productos.mostrar_productos') }}"><i class="fas fa-eye"></i> Ver Productos</a></li>            
+            <li>
+                <a href="#" id="movimientos"><i class="fas fa-exchange-alt"></i> Movimientos</a>
+                <ul class="submenu" id="submenuMovimientos">
+                    <li><a href="/entrada_producto"><i class="fas fa-plus"></i> Entrada</a></li>
+                    <li><a href="/salida_producto"><i class="fas fa-minus"></i> Salida</a></li>
+                </ul>
+            </li>
+            <li><a href="/reportes_ventas"><i class="fas fa-chart-line"></i> Reportes de Ventas</a></li>
+            <li><a href="/mi_cuenta"><i class="fas fa-users"></i> Mi Cuenta</a></li>
+            <li>
+                <a href="/logout"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="contenido-principal" id="contenidoPrincipal">
+        <header>
+            <div class="container">
+                <h1>Papelería Smarty</h1>
+              
+            </div>
+        </header>
+
+        <section class="formulario-producto">
+            <div class="container">
+                <h2>Salida de Producto</h2>
+                <form action="/salida_producto" method="post">
+                    <!-- Campo: Buscar Producto -->
+                    <div class="form-group buscar_producto">
+                        <label for="buscar_producto">Ingresa el ID o nombre del producto:</label>
+                        <input type="text" id="buscar_producto" name="id_producto" placeholder="Ej: Libreta o 123">
+                        <div id="sugerencias" class="sugerencias"></div>
+                    </div>
+
+                    <!-- Campo: Cantidad -->
+                    <div class="form-group cantidad">
+                        <label for="cantidad">Cantidad:</label>
+                        <input type="number" id="cantidad" name="cantidad_vendida" min="1" required>
+                    </div>
+
+                    <!-- Campo: Precio Total -->
+                    <div class="form-group precio_total">
+                        <label for="precio_total">Precio Total:</label>
+                        <input type="text" id="precio_total" name="precio_total" readonly>
+                    </div>
+
+                    <!-- Botón de Confirmar Venta -->
+                    <button type="submit" class="cta-button">Confirmar Venta</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de confirmación de venta exitosa -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>Venta Exitosa</h3>
+            <p>La venta ha sido registrada exitosamente.</p>
+            <button id="acceptButton" class="cta-button">Aceptar</button>
+        </div>
+    </div>
+
+    <!-- Modal de alerta de stock bajo -->
+    <div id="warningModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-icon">
+                <i class="fas fa-exclamation-circle"></i> <!-- Icono de advertencia -->
+            </div>
+            <h3>Almacenamiento bajo</h3>
+            <p id="warningMessage"></p>
+            <button id="acceptWarningButton" class="cta-button">Aceptar</button>
+        </div>
+    </div>
+
+    <!-- JavaScript para el menú ocultable y funcionalidades de salida -->
+    <script>
+        const menuToggle = document.getElementById('menuToggle');
+        const menuLateral = document.getElementById('menuLateral');
+        const contenidoPrincipal = document.getElementById('contenidoPrincipal');
+        const movimientosLink = document.getElementById('movimientos');
+        const submenuMovimientos = document.getElementById('submenuMovimientos');
+
+        // Alternar el menú lateral
+        menuToggle.addEventListener('click', () => {
+            menuLateral.classList.toggle('active');
+            contenidoPrincipal.classList.toggle('menu-active');
+        });
+
+        // Alternar el submenú de Movimientos
+        movimientosLink.addEventListener('click', (e) => {
+            e.preventDefault(); // Evitar que el enlace redirija
+            submenuMovimientos.classList.toggle('active');
+        });
+
+       // Funcionalidad de búsqueda y sugerencias - Versión corregida
+// Variables globales
+const buscarProducto = document.getElementById('buscar_producto');
+const sugerencias = document.getElementById('sugerencias');
+const cantidad = document.getElementById('cantidad');
+const precioTotal = document.getElementById('precio_total');
+let productos = [];
+let productoSeleccionado = null;
+
+// Cargar productos al iniciar
+document.addEventListener('DOMContentLoaded', () => {
+    fetch('/obtener_productos')
+        .then(response => response.json())
+        .then(data => {
+            productos = data;
+            console.log('Productos cargados:', productos);
+        });
+});
+
+// Mostrar sugerencias al escribir
+buscarProducto.addEventListener('input', function() {
+    const texto = this.value.trim().toLowerCase();
+    
+    if (texto.length < 1) {
+        sugerencias.innerHTML = '';
+        sugerencias.style.display = 'none';
+        productoSeleccionado = null;
+        return;
+    }
+    
+    const resultados = productos.filter(producto => 
+        producto.nombre_producto.toLowerCase().includes(texto) || 
+        producto.id_productos.toLowerCase().includes(texto)
+    ).slice(0, 5);
+    
+    mostrarSugerencias(resultados);
+});
+
+// Función para mostrar sugerencias
+function mostrarSugerencias(resultados) {
+    if (resultados.length === 0) {
+        sugerencias.innerHTML = '<div class="sugerencia">No se encontraron productos</div>';
+    } else {
+        sugerencias.innerHTML = resultados.map(producto => `
+            <div class="sugerencia" 
+                 data-id="${producto.id_productos}" 
+                 data-precio="${producto.precio}"
+                 data-nombre="${producto.nombre_producto}">
+                <strong>${producto.nombre_producto}</strong>
+                <small>ID: ${producto.id_productos} - $${producto.precio.toFixed(2)}</small>
+            </div>
+        `).join('');
+    }
+    sugerencias.style.display = 'block';
+}
+
+// Selección de sugerencia - Versión corregida
+document.addEventListener('click', function(e) {
+    // Si se hace clic en una sugerencia
+    if (e.target.closest('.sugerencia')) {
+        const sugerencia = e.target.closest('.sugerencia');
+        productoSeleccionado = {
+            id: sugerencia.getAttribute('data-id'),
+            nombre: sugerencia.getAttribute('data-nombre'),
+            precio: parseFloat(sugerencia.getAttribute('data-precio'))
+        };
+        
+        buscarProducto.value = productoSeleccionado.nombre;
+        sugerencias.style.display = 'none';
+        cantidad.focus();
+    }
+    // Si se hace clic fuera, ocultar sugerencias
+    else if (e.target !== buscarProducto) {
+        sugerencias.style.display = 'none';
+    }
+});
+
+// Calcular precio al cambiar cantidad
+cantidad.addEventListener('input', function() {
+    if (productoSeleccionado && this.value) {
+        const total = productoSeleccionado.precio * parseInt(this.value);
+        precioTotal.value = `$${total.toFixed(2)}`;
+    } else {
+        precioTotal.value = '';
+    }
+});
+function calcularPrecioTotal(precioUnitario) {
+    const cantidadValue = parseInt(cantidad.value) || 0;
+    const total = precioUnitario * cantidadValue;
+    precioTotal.value = `$${total.toFixed(2)}`;
+}
+        // Obtener el modal de éxito
+        const successModal = document.getElementById('successModal');
+        const successMessage = "{{ get_flashed_messages(with_categories=true) }}";
+
+        // Obtener el modal de advertencia
+        const warningModal = document.getElementById('warningModal');
+        const warningMessage = document.getElementById('warningMessage');
+
+        // Mostrar el modal de éxito si hay un mensaje de éxito
+        if (successMessage.includes('success')) {
+            successModal.style.display = 'flex';
+        }
+
+        // Mostrar el modal de advertencia si hay un mensaje de advertencia
+        if (successMessage.includes('warning')) {
+            const messages = JSON.parse('{{ get_flashed_messages(with_categories=true) | tojson | safe }}');
+            const warningMessageText = messages.find(msg => msg[0] === 'warning')[1];
+            warningMessage.textContent = warningMessageText;
+            warningModal.style.display = 'flex';
+        }
+
+        // Cerrar el modal de éxito al hacer clic en el botón de aceptar
+        document.getElementById('acceptButton').addEventListener('click', () => {
+            successModal.style.display = 'none';
+            window.location.href = "/index"; // Redirigir al índice
+        });
+
+        // Cerrar el modal de advertencia al hacer clic en el botón de aceptar
+        document.getElementById('acceptWarningButton').addEventListener('click', () => {
+            warningModal.style.display = 'none';
+        });
+
+        // Cerrar los modales al hacer clic en la "X"
+        document.querySelectorAll('.close').forEach(closeButton => {
+            closeButton.addEventListener('click', () => {
+                successModal.style.display = 'none';
+                warningModal.style.display = 'none';
+            });
+        });
+
+        // Cerrar los modales al hacer clic fuera del modal
+        window.addEventListener('click', (event) => {
+            if (event.target === successModal || event.target === warningModal) {
+                successModal.style.display = 'none';
+                warningModal.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

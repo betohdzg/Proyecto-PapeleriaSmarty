@@ -1,0 +1,253 @@
+/* Estilos para la vista de productos */
+.productos-container {
+    padding: 20px;
+    
+}
+
+.productos-container h2 {
+    color: #6A0DAD;
+    margin-bottom: 20px;
+
+}
+
+.productos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.producto-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.producto-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.producto-imagen {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.producto-sin-imagen {
+    width: 100%;
+    height: 180px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6A0DAD;
+    font-size: 2rem;
+}
+
+.producto-info {
+    padding: 15px;
+}
+
+.producto-info h3 {
+    color: #333;
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+}
+
+.producto-categoria {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.producto-precio {
+    color: #6A0DAD;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin: 10px 0;
+}
+
+.producto-stock {
+    font-size: 0.9rem;
+    color: #4CAF50;
+}
+
+.producto-stock.stock-bajo {
+    color: #F44336;
+}
+
+.producto-acciones {
+    padding: 0 15px 15px;
+}
+
+.btn-editar {
+    display: inline-block;
+    padding: 8px 15px;
+    background-color: #6A0DAD;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+}
+
+.btn-editar:hover {
+    background-color: #4B0082;
+}
+/* Modal de confirmación */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.modal-icon {
+    font-size: 50px;
+    margin-bottom: 15px;
+    color: #4B0082;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.btn-eliminar {
+    padding: 10px 20px;
+    background-color: #4B0082;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-eliminar:hover {
+    background-color: #6A0DAD;
+}
+
+.btn-cancelar {
+    padding: 10px 20px;
+    background-color: #757575;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-cancelar:hover {
+    background-color: #616161;
+}
+
+.close {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.btn-cancelar {
+    padding: 10px 20px;
+    background-color: #616161;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-cancelar:hover {
+    background-color: #757575;
+}
+
+.btn-guardar {
+    padding: 10px 20px;
+    background-color: #6A0DAD;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-guardar:hover {
+    background-color: #4B0082;
+}
+
+.preview-image {
+    max-width: 200px;
+    max-height: 200px;
+    margin-top: 10px;
+    display: block;
+}
+
+/* Notificaciones */
+.notificacion {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 4px;
+    color: white;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    animation: slideIn 0.3s ease-out;
+}
+
+.notificacion.success {
+    background-color: #4CAF50;
+}
+
+.notificacion.error {
+    background-color: #f44336;
+}
+
+.notificacion i {
+    font-size: 1.2em;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.fade-out {
+    animation: fadeOut 0.5s ease-out;
+}
+
+@keyframes fadeOut {
+    to { opacity: 0; }
+}

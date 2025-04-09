@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papelería Smarty</title>
+    <link rel="stylesheet" href="static/paginaPrincipal.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Botón para abrir/cerrar el menú -->
+    <div class="menu-toggle" id="menuToggle">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <!-- Menú lateral -->
+    <aside class="menu-lateral" id="menuLateral">
+        <div class="menu-header">
+            <h2>Menú</h2>
+        </div>
+        <ul class="menu-items">
+            <li><a href="/index"><i class="fas fa-home"></i> Inicio</a></li>
+            <li><a href="{{ url_for('ver_productos.mostrar_productos') }}"><i class="fas fa-eye"></i> Ver Productos</a></li>            
+            <li>
+                <a href="#" id="movimientos"><i class="fas fa-exchange-alt"></i> Movimientos</a>
+                <ul class="submenu" id="submenuMovimientos">
+                    <li><a href="/entrada_producto"><i class="fas fa-plus"></i> Entrada</a></li>
+                    <li><a href="/salida_producto"><i class="fas fa-minus"></i> Salida</a></li>
+                </ul>
+            </li>
+            <li><a href="/reportes_ventas"><i class="fas fa-chart-line"></i> Reportes de Ventas</a></li>
+            <li><a href="/mi_cuenta"><i class="fas fa-users"></i> Mi Cuenta</a></li>
+            <li>
+                <a href="/logout"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="contenido-principal" id="contenidoPrincipal">
+        <header>
+            <div class="container">
+                <h1>Papelería Smarty</h1>
+                
+            </div>
+        </header>
+
+        <section class="hero">
+            <div class="container">
+                <h2>Bienvenido de nuevo!</h2>
+                <p>¿Qué quieres realizar el día de hoy?</p>
+                <div class="button-group">
+                    <a href="/entrada_producto" class="cta-button">
+                        <i class="fas fa-plus"></i> Entradas
+                    </a>
+                    <a href="/salida_producto" class="cta-button">
+                        <i class="fas fa-minus"></i> Salidas
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección de Productos -->
+        <section class="productos">
+            <div class="container">
+                <h2>Productos Populares</h2>
+                <div class="lista-productos" id="lista-productos">
+                    <!-- Los productos se cargarán aquí dinámicamente -->
+                </div>
+            </div>
+        </section>
+
+<!-- Sección de Gráficos y Estadísticas -->
+<section class="graficos">
+    <h2>Estadísticas de Inventario</h2>
+    <div class="graficos-container">
+        <canvas id="graficoVentas"></canvas>
+        <canvas id="graficoStock"></canvas>
+    </div>
+</section>
+
+
+        <footer>
+            <div class="container">
+                <p>&copy; 2023 HuaaTecShop. Todos los derechos reservados.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const menuToggle = document.getElementById('menuToggle');
+        const menuLateral = document.getElementById('menuLateral');
+        const contenidoPrincipal = document.getElementById('contenidoPrincipal');
+        const movimientosLink = document.getElementById('movimientos');
+        const submenuMovimientos = document.getElementById('submenuMovimientos');
+    
+        // Alternar el menú lateral
+        menuToggle.addEventListener('click', () => {
+            menuLateral.classList.toggle('active');
+            contenidoPrincipal.classList.toggle('menu-active');
+        });
+    
+        // Alternar el submenú de Movimientos
+        movimientosLink.addEventListener('click', (e) => {
+            e.preventDefault(); // Evitar que el enlace redirija
+            submenuMovimientos.classList.toggle('active');
+        });
+    
+        // Función para generar colores
+        function generarColoresGrafica(cantidad) {
+            const coloresBase = [
+                'rgba(106, 13, 173, 0.8)',
+                'rgba(255, 105, 180, 0.8)',
+                'rgba(100, 210, 255, 0.8)',
+                'rgba(255, 206, 86, 0.8)',
+                'rgba(130, 230, 150, 0.8)',
+                'rgba(247, 38, 142, 0.8)'
+            ];
+            
+            if (cantidad <= coloresBase.length) {
+                return coloresBase.slice(0, cantidad);
+            }
+            
+            const coloresExtendidos = [...coloresBase];
+            
+            for (let i = coloresBase.length; i < cantidad; i++) {
+                const lastColor = coloresExtendidos[coloresExtendidos.length - 1];
+                const matches = lastColor.match(/rgba\((\d+),\s*(\d+),\s*(\d+)/);
+                
+                if (matches) {
+                    const r = parseInt(matches[1]);
+                    const g = parseInt(matches[2]);
+                    const b = parseInt(matches[3]);
+                    
+                    const nuevoR = (r + 40) % 256;
+                    const nuevoG = (g + 30) % 256;
+                    const nuevoB = (b + 50) % 256;
+                    
+                    coloresExtendidos.push(`rgba(${nuevoR}, ${nuevoG}, ${nuevoB}, 0.8)`);
+                }
+            }
+            
+            return coloresExtendidos.slice(0, cantidad);
+        }
+    
+        // Obtener datos de productos y ventas
+        Promise.all([
+            fetch('/obtener_productos_principal').then(res => {
+                if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+                return res.json();
+            }),
+            fetch('/obtener_ventas_productos').then(res => {
+                if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+                return res.json();
+            })
+        ])
+        .then(([productosData, ventasData]) => {
+            const listaProductos = document.getElementById('lista-productos');
+            
+            // Verificar si hay datos
+            if (!productosData || productosData.length === 0) {
+                throw new Error('No se encontraron productos');
+            }
+    
+            // Limpiar lista antes de agregar productos
+            listaProductos.innerHTML = '';
+    
+            // Procesar datos de productos (para stock y para mostrar)
+            const nombresProductos = [];
+            const stockProductos = [];
+            
+            productosData.forEach(producto => {
+                // Determinar clase de stock
+                let claseStock = '';
+                if (producto.cantidad > 15) {
+                    claseStock = 'stock-verde';
+                } else if (producto.cantidad >= 6 && producto.cantidad <= 15) {
+                    claseStock = 'stock-amarillo';
+                } else {
+                    claseStock = 'stock-rojo';
+                }
+    
+                // Crear elemento de producto
+                const productoHTML = `
+                    <div class="producto">
+                        <img src="${producto.foto_url}" alt="${producto.nombre_producto}">
+                        <h3>${producto.nombre_producto}</h3>
+                        <p class="precio">$${producto.precio.toFixed(2)}</p>
+                        <p class="stock ${claseStock}">Disponibles: ${producto.cantidad}</p>
+                    </div>
+                `;
+                listaProductos.innerHTML += productoHTML;
+    
+                // Agregar datos para gráficas
+                nombresProductos.push(producto.nombre_producto);
+                stockProductos.push(producto.cantidad);
+            });
+    
+            // Procesar datos de ventas
+            const ventasProductos = nombresProductos.map(nombre => {
+                const venta = ventasData.find(v => v.nombre_producto === nombre);
+                return venta ? venta.total_vendido : 0;
+            });
+    
+            const coloresGrafica = generarColoresGrafica(nombresProductos.length);
+    
+            // Gráfica de BARRAS (VENTAS)
+            new Chart(
+                document.getElementById('graficoVentas').getContext('2d'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels: nombresProductos,
+                        datasets: [{
+                            label: 'Unidades Vendidas',
+                            data: ventasProductos,
+                            backgroundColor: coloresGrafica,
+                            borderColor: 'rgba(255, 255, 255, 0.8)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Productos Más Vendidos',
+                                font: { size: 16, weight: 'bold' }
+                            },
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: { 
+                                    display: true, 
+                                    text: 'Unidades Vendidas',
+                                    font: { weight: 'bold' }
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Productos',
+                                    font: { weight: 'bold' }
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+    
+            // Gráfica de DOUGHNUT (STOCK)
+            new Chart(
+                document.getElementById('graficoStock').getContext('2d'),
+                {
+                    type: 'doughnut',
+                    data: {
+                        labels: nombresProductos,
+                        datasets: [{
+                            label: 'Stock Actual',
+                            data: stockProductos,
+                            backgroundColor: coloresGrafica,
+                            borderColor: 'rgba(255, 255, 255, 0.8)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Stock por Producto',
+                                font: { size: 16, weight: 'bold' }
+                            },
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    boxWidth: 20,
+                                    padding: 15,
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '60%'
+                    }
+                }
+            );
+        })
+        .catch(error => {
+            console.error("Error al cargar datos:", error);
+            // Mostrar mensaje de error
+            const errorContainer = document.createElement('div');
+            errorContainer.className = 'error-message';
+            errorContainer.textContent = `Error al cargar los datos: ${error.message}`;
+            document.body.prepend(errorContainer);
+        });
+    </script>
+</body>
+</html>

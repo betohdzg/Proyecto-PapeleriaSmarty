@@ -1,0 +1,111 @@
+/* Estilos generales del formulario */
+.formulario-mi-cuenta {
+    background-color: rgba(255, 255, 255, 0.9); /* Fondo semitransparente blanco */
+    padding: 30px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px); /* Efecto de desenfoque */
+    max-width: 600px;
+    margin: 20px auto;
+    font-family: 'Poppins', sans-serif;
+    color: #6A0DAD; /* Texto gris oscuro */
+}
+
+/* Estilos para los grupos de formulario */
+.form-group {
+    margin-bottom: 20px; /* Espacio entre los campos */
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555; /* Texto gris */
+}
+
+.form-group input {
+    width: 100%; /* Todos los campos ocupan el 100% del ancho disponible */
+    padding: 10px;
+    border: 1px solid #000; /* Borde negro */
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background-color: #fff; /* Fondo blanco */
+    color: #333; /* Texto gris oscuro */
+    transition: border-color 0.3s ease;
+    box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+}
+
+.form-group input:focus {
+    border-color: #f7268e; /* Borde rosa al enfocar */
+    outline: none;
+}
+
+/* Contenedor de contraseña */
+.password-container {
+    position: relative;
+    width: 100%; /* Asegura que el contenedor ocupe el mismo ancho que los demás campos */
+}
+
+.password-container input {
+    width: 100%; /* El campo de contraseña ocupa el 100% del contenedor */
+    padding-right: 40px; /* Espacio para el ícono */
+    box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+}
+
+.password-container i {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #555;
+}
+
+.password-container i:hover {
+    color: #f7268e;
+}
+
+/* Estilos para el botón de agregar producto (si lo necesitas) */
+.cta-button {
+    background-color: #f7268e; /* Fondo rosa */
+    color: #fff; /* Texto blanco */
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    width: 100%;
+    transition: background-color 0.3s ease;
+    box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+}
+
+.cta-button:hover {
+    background-color: #e21b7d; /* Rosa más oscuro al hacer hover */
+}
+
+
+.graficos-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Ajusta el ancho mínimo */
+    gap: 20px;
+    padding: 0 20px;
+}
+
+canvas {
+    max-width: 100%; /* Asegura que las gráficas no excedan el ancho del contenedor */
+    height: 300px; /* Altura fija para las gráficas */
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Sombra más suave */
+}
+
+/* Estilos para dispositivos móviles */
+@media (max-width: 768px) {
+    .graficos-container {
+        grid-template-columns: 1fr; /* Una columna en móviles */
+    }
+
+    canvas {
+        height: 250px; /* Altura reducida para móviles */
+    }
+}
