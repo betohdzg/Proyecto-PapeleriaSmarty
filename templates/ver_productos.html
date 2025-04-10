@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos - Papelería Smarty</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='paginaPrincipal.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='ver_productos.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+ 
+</head>
+<body>
+    <!-- Botón para abrir/cerrar el menú -->
+    <div class="menu-toggle" id="menuToggle">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <!-- Menú lateral -->
+    <aside class="menu-lateral" id="menuLateral">
+        <div class="menu-header">
+            <h2>Menú</h2>
+        </div>
+        <ul class="menu-items">
+            <li><a href="/index"><i class="fas fa-home"></i> Inicio</a></li>
+            <li><a href="{{ url_for('ver_productos.mostrar_productos') }}"><i class="fas fa-eye"></i> Ver Productos</a></li>            
+            <li>
+                <a href="#" id="movimientos"><i class="fas fa-exchange-alt"></i> Movimientos</a>
+                <ul class="submenu" id="submenuMovimientos">
+                    <li><a href="/entrada_producto"><i class="fas fa-plus"></i> Entrada</a></li>
+                    <li><a href="/salida_producto"><i class="fas fa-minus"></i> Salida</a></li>
+                </ul>
+            </li>
+            <li><a href="/reportes_ventas"><i class="fas fa-chart-line"></i> Reportes de Ventas</a></li>
+            <li><a href="/mi_cuenta"><i class="fas fa-users"></i> Mi Cuenta</a></li>
+            <li>
+                <a href="/logout"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="contenido-principal" id="contenidoPrincipal">
+        <header>
+            <div class="container">
+                <h1>Papelería Smarty</h1>
+                
+            </div>
+        </header>
+
+        <!-- Sección de Productos -->
+        <section class="productos">
+            <div class="container">
+                <h2>Nuestros Productos</h2>
+                <div class="lista-productos">
+                    {% for producto in productos %}
+                    <div class="producto">
+                        {% if producto.foto_url %}
+                        <img src="{{ producto.foto_url }}" 
+                             alt="{{ producto.nombre_producto }}"
+                             onerror="this.src='/static/imagen_no_disponible.jpg'">
+                        {% else %}
+                        <div class="producto-sin-imagen">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <h3>{{ producto.nombre_producto }}</h3>
+                        <p class="precio">${{ "%.2f"|format(producto.precio) }}</p>
+                        <p class="stock {% if producto.cantidad <= 5 %}stock-rojo{% elif producto.cantidad <= 15 %}stock-amarillo{% else %}stock-verde{% endif %}">
+                            Disponibles: {{ producto.cantidad }}
+                            {% if producto.cantidad <= 5 %}<span>!</span>{% endif %}
+                        </p>
+                        
+                        <!-- Botones de acción -->
+                        <div class="producto-acciones">
+                            <button class="btn-aumentar" onclick="aumentarStock('{{ producto.id_productos }}')">
+                                <i class="fas fa-plus-circle"></i> Añadir Stock
+                            </button>
+                            <button class="btn-editar" onclick="editarProducto('{{ producto.id_productos }}')">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="btn-eliminar" 
+                            data-producto-id="{{ producto.id_productos }}"
+                            data-producto-nombre="{{ producto.nombre_producto }}">
+                        <i class="fas fa-trash-alt"></i> Eliminar
+                    </button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="no-productos">No se encontraron productos</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de confirmación para eliminar -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal()">&times;</span>
+            <div class="modal-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h3>Confirmar Eliminación</h3>
+            <p>¿Estás seguro de que deseas eliminar este producto del sistema?</p>
+            <div class="modal-buttons">
+                <button id="confirmDelete" class="btn-eliminar">Eliminar</button>
+                <button id="cancelDelete" class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para añadir stock -->
+<div id="añadirStockModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarAñadirStockModal()">&times;</span>
+        <div class="modal-icon">
+            <i class="fas fa-plus-circle"></i>
+        </div>
+        <h3>Añadir Stock</h3>
+        <p>Ingrese la cantidad a agregar al stock:</p>
+        <input type="number" id="cantidadStock" class="stock-input" min="1" value="1">
+        <div class="modal-buttons">
+            <button id="confirmAñadirStock" class="btn-confirmar">Aceptar</button>
+            <button class="btn-cancelar" onclick="cerrarAñadirStockModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+    <script>
+        // Variables globales
+        let productoSeleccionado = null;
+        
+        // Alternar el menú lateral
+        const menuToggle = document.getElementById('menuToggle');
+        const menuLateral = document.getElementById('menuLateral');
+        const contenidoPrincipal = document.getElementById('contenidoPrincipal');
+        const movimientosLink = document.getElementById('movimientos');
+        const submenuMovimientos = document.getElementById('submenuMovimientos');
+
+        menuToggle.addEventListener('click', () => {
+            menuLateral.classList.toggle('active');
+            contenidoPrincipal.classList.toggle('menu-active');
+        });
+
+        movimientosLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            submenuMovimientos.classList.toggle('active');
+        });
+
+        let productoSeleccionadoParaStock = null;
+
+function aumentarStock(productoId) {
+    productoSeleccionadoParaStock = productoId;
+    const modal = document.getElementById('añadirStockModal');
+    const input = document.getElementById('cantidadStock');
+    
+    input.value = 1;
+    modal.style.display = 'flex';
+    input.focus();
+}
+
+document.getElementById('confirmAñadirStock').addEventListener('click', function() {
+    const cantidad = document.getElementById('cantidadStock').value;
+    if (!cantidad || isNaN(cantidad) || cantidad < 1) {
+        mostrarNotificacion('Por favor ingrese una cantidad válida (número mayor a 0)', 'error');
+        return;
+    }
+
+    fetch(`/aumentar_stock/${productoSeleccionadoParaStock}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cantidad: parseInt(cantidad) })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => { throw err; });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Actualizar la cantidad en la interfaz sin recargar
+            const productos = document.querySelectorAll('.producto');
+            productos.forEach(prod => {
+                const id = prod.querySelector('.btn-aumentar').getAttribute('onclick').match(/'([^']+)'/)[1];
+                if (id === productoSeleccionadoParaStock) {
+                    const stockElement = prod.querySelector('.stock');
+                    stockElement.textContent = `Disponibles: ${data.nueva_cantidad}`;
+                    
+                    // Actualizar clases de color según el nuevo stock
+                    stockElement.className = 'stock';
+                    if (data.nueva_cantidad <= 5) {
+                        stockElement.classList.add('stock-rojo');
+                    } else if (data.nueva_cantidad <= 15) {
+                        stockElement.classList.add('stock-amarillo');
+                    } else {
+                        stockElement.classList.add('stock-verde');
+                    }
+                }
+            });
+            
+            mostrarNotificacion(data.message, 'success');
+            cerrarAñadirStockModal();
+        } else {
+            throw new Error(data.error || 'Error desconocido');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarNotificacion(error.message || 'Error al actualizar el stock', 'error');
+    });
+});
+
+function mostrarNotificacion(mensaje, tipo) {
+    const notificacion = document.createElement('div');
+    notificacion.className = `notificacion ${tipo}`;
+    notificacion.textContent = mensaje;
+    document.body.appendChild(notificacion);
+    
+    setTimeout(() => {
+        notificacion.remove();
+    }, 3000);
+}
+
+function cerrarAñadirStockModal() {
+    document.getElementById('añadirStockModal').style.display = 'none';
+    productoSeleccionadoParaStock = null;
+}
+
+// Cerrar modal al hacer clic fuera
+window.addEventListener('click', function(event) {
+    if (event.target === document.getElementById('añadirStockModal')) {
+        cerrarAñadirStockModal();
+    }
+});
+
+function mostrarConfirmacionEliminar(productoId, productoNombre) {
+    productoSeleccionado = productoId;
+    
+    const modal = document.getElementById('confirmModal');
+    modal.querySelector('h3').textContent = 'Confirmar Eliminación';
+    modal.querySelector('p').innerHTML = `
+        ¿Estás seguro de eliminar <strong>${productoNombre}</strong>?<br>
+        <small>Todos los movimientos relacionados también serán eliminados.</small>
+    `;
+    modal.style.display = 'flex';
+}
+
+// Modificar el llamado en los botones de eliminar
+document.querySelectorAll('.btn-eliminar').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const productoId = this.getAttribute('data-producto-id');
+        const productoNombre = this.getAttribute('data-producto-nombre');
+        mostrarConfirmacionEliminar(productoId, productoNombre);
+    });
+});
+
+        function cerrarModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+            productoSeleccionado = null;
+        }
+
+        document.getElementById('confirmDelete').addEventListener('click', () => {
+            if (productoSeleccionado) {
+                fetch(`/eliminar_producto/${productoSeleccionado}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        alert('Error al eliminar el producto');
+                    }
+                })
+                .catch(error => console.error('Error:', error))
+                .finally(() => cerrarModal());
+            }
+        });
+
+        // Cerrar modal al hacer clic fuera
+        window.addEventListener('click', (event) => {
+            if (event.target === document.getElementById('confirmModal')) {
+                cerrarModal();
+            }
+        });
+
+        function editarProducto(productoId) {
+    // Verificar que se está llamando la función
+    console.log('Intentando editar producto con ID:', productoId);
+    
+    // Redirigir a la página de edición
+    window.location.href = `/editar_producto/${encodeURIComponent(productoId)}`;
+}
+    </script>
+</body>
+</html>

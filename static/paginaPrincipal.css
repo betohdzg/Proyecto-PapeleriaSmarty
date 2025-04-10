@@ -1,0 +1,415 @@
+/* Estilos generales */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    line-height: 1.6;
+    background: linear-gradient(to bottom, #6A0DAD, #FF69B4, #FFFFFF); 
+    min-height: 100vh;
+}
+
+/* Botón para abrir/cerrar el menú */
+.menu-toggle {
+    position: fixed;
+    top: 20px;
+    left: 10px; /* Mueve más a la izquierda */
+    font-size: 24px;
+    color: #fff;
+    cursor: pointer;
+    z-index: 1001;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+/* Menú lateral */
+.menu-lateral {
+    width: 250px;
+    backdrop-filter: blur(10px); /* Efecto de desenfoque */
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: -250px; /* Menú oculto por defecto */
+    padding: 20px;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: left 0.3s ease;
+    z-index: 1000;
+    border: none; /* Elimina bordes */
+    box-shadow: none;
+    backdrop-filter: none;
+}
+
+.menu-lateral.active {
+    left: 0; /* Menú visible */
+}
+
+.menu-header h2 {
+    color: #fff;
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.menu-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu-items li {
+    margin-bottom: 15px;
+}
+
+.menu-items li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.menu-items li a:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Fondo semitransparente al hacer hover */
+}
+
+.menu-items li a i {
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+/* Contenido principal */
+.contenido-principal {
+    margin-left: 0; /* Sin margen inicial */
+    padding: 20px;
+    flex-grow: 1;
+    transition: margin-left 0.3s ease;
+}
+
+.contenido-principal.menu-active {
+    margin-left: 250px; /* Desplazamiento cuando el menú está activo */
+}
+
+        /* Ocultar el submenú inicialmente */
+        .submenu {
+            display: none;
+            list-style-type: none; /* Eliminar los puntos de la lista */
+            padding-left: 20px; /* Añadir sangría para el submenú */
+        }
+
+        /* Mostrar el submenú cuando tenga la clase 'active' */
+        .submenu.active {
+            display: block;
+        }
+
+/* Estilos del header */
+header {
+    color: #fff;
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px); /* Efecto de desenfoque */
+}
+header .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Asegura separación entre el título y el menú */
+    padding: 0 50px; /* Ajusta los márgenes internos */
+}
+
+
+header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+header nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 20px;
+}
+
+header nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+header nav ul li a:hover {
+    color: #FF69B4;
+}
+
+/* Estilos del hero */
+.hero {
+    padding: 150px 0;
+    text-align: center;
+    color: #fff; /* Texto blanco para contrastar con el fondo */
+}
+
+.hero h2 {
+    font-size: 36px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.hero p {
+    font-size: 18px;
+    margin-bottom: 30px;
+}
+
+/* Estilos para el grupo de botones */
+.button-group {
+    display: flex;
+    gap: 20px; /* Espacio entre los botones */
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* Estilos para los botones */
+.cta-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 30px; /* Aumenta el padding para hacer los botones más grandes */
+    background-color: #6A0DAD;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 18px; /* Aumenta el tamaño de la fuente */
+    transition: background-color 0.3s ease;
+}
+
+.cta-button i {
+    margin-right: 10px; /* Espacio entre el icono y el texto */
+}
+
+.cta-button:hover {
+    background-color: #4B0082;
+}
+
+
+/* Estilos de las características */
+.features {
+    padding: 60px 0;
+    backdrop-filter: blur(10px); /* Efecto de desenfoque */
+}
+
+.features .container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.feature-card {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.feature-card i {
+    font-size: 40px;
+    color: #0074D9; /* Azul cielo */
+    margin-bottom: 20px;
+}
+
+.feature-card h3 {
+    font-size: 20px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.feature-card p {
+    font-size: 16px;
+    color: #666;
+}
+
+/* Estilos del footer */
+footer {
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 60px;
+    backdrop-filter: blur(10px); /* Efecto de desenfoque */
+}
+
+footer p {
+    margin: 0;
+}
+
+.social-links {
+    margin-top: 10px;
+}
+
+.social-links a {
+    color: #fff;
+    margin: 0 10px;
+    font-size: 18px;
+    transition: color 0.3s ease;
+}
+
+.social-links a:hover {
+    color: #f7268e;
+}
+
+/* Estilos para la sección de productos */
+.productos {
+    padding: 60px 0;
+    backdrop-filter: blur(10px); /* Efecto de desenfoque */
+    
+}
+
+.productos h2 {
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 40px;
+    color: #fff; /* Texto blanco para contrastar con el fondo */
+}
+
+.lista-productos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 0 20px;
+}
+
+/* Estilos para la sección de productos */
+.productos {
+    padding: 60px 0;
+    backdrop-filter: blur(10px); /* Efecto de desenfoque */
+}
+
+.productos h2 {
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 40px;
+    color: #fff; /* Texto blanco para contrastar con el fondo */
+}
+
+.lista-productos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Tarjetas más grandes */
+    gap: 20px;
+    padding: 0 20px;
+}
+
+.producto {
+    background-color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
+    padding: 15px;
+    max-width: 420px; /* Ancho máximo de la tarjeta */
+    height: 457px;
+}
+
+.producto:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilos para las imágenes */
+.producto img {
+    max-height: 280px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+/* Estilos para el texto */
+.producto h3 {
+    font-size: 24px; /* Tamaño de fuente más grande */
+    margin: 10px 0;
+    color: #333;
+    
+}
+
+.producto p {
+    font-size: 18px; /* Tamaño de fuente más grande */
+    color: #666;
+    margin: 5px 0;
+}
+
+/* Estilos para el precio */
+.producto .precio {
+    font-size: 22px; /* Tamaño de fuente más grande */
+    color: #f7268e; /* Color destacado para el precio */
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+/* Estilos para el stock */
+.producto .stock {
+    font-size: 16px;
+    margin: 5px 0;
+    font-weight: bold;
+}
+
+/* Verde para más de 15 */
+.producto .stock-verde {
+    color: #28a745; /* Verde */
+}
+
+/* Amarillo para 6-15 */
+.producto .stock-amarillo {
+    color: #ffc107; /* Amarillo */
+}
+
+/* Rojo para menos de 6 */
+.producto .stock-rojo {
+    color: #dc3545; /* Rojo */
+}
+
+
+/* Estilos para las gráficas */
+.graficos-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Ajusta el ancho mínimo */
+    gap: 20px;
+    padding: 0 20px;
+    margin-top: 20px; /* Añade un margen superior para evitar superposición */
+
+}
+
+/* Estilos para el título de la sección de gráficos */
+.graficos h2 {
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 40px;
+    color: #fff; /* Texto blanco para contrastar con el fondo */
+}
+
+canvas {
+    max-width: 460px; /* Asegura que las gráficas no excedan el ancho del contenedor */
+    height: 360px; /* Altura automática para mantener la proporción */
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Sombra más suave */
+    text-align: center;
+}
+
+/* Estilos para dispositivos móviles */
+@media (max-width: 768px) {
+    .graficos-container {
+        grid-template-columns: 1fr; /* Una columna en móviles */
+    }
+
+    canvas {
+        height: 250px; /* Altura reducida para móviles */
+    }
+}
