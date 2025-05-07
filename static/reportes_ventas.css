@@ -20,26 +20,36 @@
     color: #666;
 }
 
-/* Filtro de Fechas */
+/* Ajustes para los filtros */
 .filtro-fechas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
     margin-bottom: 20px;
+}
+
+.filtro-group {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .filtro-fechas label {
     font-size: 18px;
     color: #333;
+    white-space: nowrap;
 }
 
-.filtro-fechas input[type="date"] {
+.filtro-fechas input[type="date"],
+.filtro-fechas select {
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #6A0DAD;
     font-size: 16px;
     color: #333;
     background-color: #fff;
+    min-width: 150px;
 }
 
 .filtro-fechas button {
@@ -53,6 +63,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    transition: background-color 0.3s ease;
 }
 
 .filtro-fechas button:hover {
@@ -95,13 +106,25 @@ table tr:hover {
 @media (max-width: 768px) {
     .filtro-fechas {
         flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .filtro-group {
+        flex-direction: column;
         align-items: flex-start;
     }
-
+    
+    .filtro-fechas input[type="date"],
+    .filtro-fechas select {
+        width: 100%;
+    }
+    
     .filtro-fechas button {
         width: 100%;
         justify-content: center;
     }
+    
 }
 
  /* Estilos para el modal de advertencia */
@@ -188,4 +211,38 @@ table tr:hover {
 
 #descargar-pdf i {
     font-size: 18px;
+}
+/* Filtro de Categorías */
+.filtro-categorias {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filtro-categorias label {
+    font-size: 18px;
+    color: #333;
+}
+
+.filtro-categorias select {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #6A0DAD;
+    font-size: 16px;
+    color: #333;
+    background-color: #fff;
+    min-width: 200px;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .filtro-categorias {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .filtro-categorias select {
+        width: 100%;
+    }
 }

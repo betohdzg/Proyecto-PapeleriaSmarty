@@ -43,7 +43,6 @@
         <header>
             <div class="container">
                 <h1>Papelería Smarty</h1>
-          
             </div>
         </header>
 
@@ -54,22 +53,43 @@
                 <p>Visualiza las ventas realizadas por mes.</p>
             </header>
 
-            <div class="filtro-fechas">
-                <label for="fecha-inicio">Fecha Inicio:</label>
-                <input type="date" id="fecha-inicio" name="fecha-inicio">
-            
-                <label for="fecha-fin">Fecha Fin:</label>
-                <input type="date" id="fecha-fin" name="fecha-fin">
-            
-                <button id="generar-reporte">
-                    <i class="fas fa-chart-line"></i> Generar Reporte
-                </button>
-            
-                <!-- Botón de descarga en PDF -->
-                <button id="descargar-pdf" >
-                    <i class="fas fa-file-pdf"></i> Descargar PDF
-                </button>
-            </div>
+<!-- Filtros -->
+<div class="filtro-fechas">
+    <div class="filtro-group">
+        <label for="fecha-inicio">Fecha Inicio:</label>
+        <input type="date" id="fecha-inicio" name="fecha-inicio" value="{{ request.args.get('fecha_inicio', '') }}">
+    </div>
+    
+    <div class="filtro-group">
+        <label for="fecha-fin">Fecha Fin:</label>
+        <input type="date" id="fecha-fin" name="fecha-fin" value="{{ request.args.get('fecha_fin', '') }}">
+    </div>
+
+   
+
+    <button id="generar-reporte">
+        <i class="fas fa-chart-line"></i> Generar Reporte
+    </button>
+    
+    <button id="descargar-pdf">
+        <i class="fas fa-file-pdf"></i> Descargar PDF
+    </button>
+
+    <div class="filtro-group">
+        <label for="categoria">Categoría:</label>
+        <select id="categoria" name="categoria">
+            <option value="">Todas las categorías</option>
+            {% for categoria in categorias %}
+            <option value="{{ categoria.id_categoria }}" 
+                    {% if categoria.id_categoria == request.args.get('categoria')|int %}selected{% endif %}>
+                {{ categoria.nombre_categoria }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+</div>
+
 
             <!-- Tabla de Reportes -->
             <div class="tabla-reportes">
@@ -78,6 +98,7 @@
                         <tr>
                             <th>ID Movimiento</th>
                             <th>Producto</th>
+                            <th>Categoría</th>
                             <th>Tipo</th>
                             <th>Cantidad</th>
                             <th>Fecha</th>
@@ -85,12 +106,13 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% if movimientos %}
+                        {% if filtros_aplicados %}
                             {% if movimientos|length > 0 %}
                                 {% for movimiento in movimientos %}
                                 <tr>
                                     <td>{{ movimiento.id_moviento }}</td>
                                     <td>{{ movimiento.nombre_producto }}</td>
+                                    <td>{{ movimiento.nombre_categoria }}</td>
                                     <td>{{ movimiento.tipo }}</td>
                                     <td>{{ movimiento.cantidad }}</td>
                                     <td>{{ movimiento.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
@@ -99,116 +121,119 @@
                                 {% endfor %}
                             {% else %}
                                 <tr>
-                                    <td colspan="6" style="text-align: center;">
-                                        {% if request.args.get('fecha_inicio') %}
-                                            No hay movimientos en este rango de fechas.
-                                        {% else %}
-                                            Seleccione un rango de fechas para generar el reporte.
-                                        {% endif %}
+                                    <td colspan="7" style="text-align: center;">
+                                        No hay movimientos con los filtros seleccionados
                                     </td>
                                 </tr>
                             {% endif %}
                         {% else %}
                             <tr>
-                                <td colspan="6" style="text-align: center;">
-                                    Error al cargar los movimientos
+                                <td colspan="7" style="text-align: center;">
+                                    Seleccione filtros y haga clic en "Generar Reporte"
                                 </td>
                             </tr>
                         {% endif %}
                     </tbody>
                 </table>
             </div>
-        </div>
     </main>
 
-<!-- Modal de alerta de stock bajo -->
-<div id="warningModal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <div class="modal-icon">
-            <i class="fas fa-exclamation-circle"></i> <!-- Icono de advertencia -->
+    <!-- Modal de alerta -->
+    <div id="warningModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h3 id="modal-title">Advertencia</h3>
+            <p id="warningMessage"></p>
+            <button id="acceptWarningButton" class="cta-button">Aceptar</button>
         </div>
-        <h3>Por favor, seleccione ambas fechas</h3>
-        <p id="warningMessage"></p>
-        <button id="acceptWarningButton" class="cta-button">Aceptar</button>
     </div>
-</div>
 
     <!-- Scripts -->
     <script>
+        // Elementos del DOM
         const menuToggle = document.getElementById('menuToggle');
         const menuLateral = document.getElementById('menuLateral');
         const contenidoPrincipal = document.getElementById('contenidoPrincipal');
         const movimientosLink = document.getElementById('movimientos');
         const submenuMovimientos = document.getElementById('submenuMovimientos');
+        const warningModal = document.getElementById('warningModal');
+        const warningMessage = document.getElementById('warningMessage');
+        const modalTitle = document.getElementById('modal-title');
 
-        // Alternar el menú lateral
+        // Menú lateral
         menuToggle.addEventListener('click', () => {
             menuLateral.classList.toggle('active');
             contenidoPrincipal.classList.toggle('menu-active');
         });
 
-        // Alternar el submenú de Movimientos
+        // Submenú de Movimientos
         movimientosLink.addEventListener('click', (e) => {
-            e.preventDefault(); // Evitar que el enlace redirija
+            e.preventDefault();
             submenuMovimientos.classList.toggle('active');
         });
 
-// Generar reporte al hacer clic en el botón
-document.getElementById('generar-reporte').addEventListener('click', () => {
-    const fechaInicio = document.getElementById('fecha-inicio').value;
-    const fechaFin = document.getElementById('fecha-fin').value;
+        // Función para mostrar errores
+        function mostrarError(titulo, mensaje) {
+            modalTitle.textContent = titulo;
+            warningMessage.textContent = mensaje;
+            warningModal.style.display = 'flex';
+        }
 
-    if (!fechaInicio || !fechaFin) {
-        // Mostrar modal de advertencia
-        const warningModal = document.getElementById('warningModal');
-        const warningMessage = document.getElementById('warningMessage');
-        warningMessage.textContent = 'Por favor, selecciona ambas fechas.';
-        warningModal.style.display = 'flex';
-        return;
-    }
+        // Función para generar reporte
+        function generarReporte(esPDF = false) {
+            const fechaInicio = document.getElementById('fecha-inicio').value;
+            const fechaFin = document.getElementById('fecha-fin').value;
+            const categoriaId = document.getElementById('categoria').value;
 
-    // Redirigir con parámetros GET
-    window.location.href = `/reportes_ventas?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`;
-});
+            // Validación: al menos un filtro
+            if (!fechaInicio && !fechaFin && !categoriaId) {
+                mostrarError('Filtros requeridos', 'Selecciona al menos un filtro (fechas o categoría)');
+                return;
+            }
 
-// Cerrar el modal de advertencia al hacer clic en el botón de aceptar
-document.getElementById('acceptWarningButton').addEventListener('click', () => {
-    const warningModal = document.getElementById('warningModal');
-    warningModal.style.display = 'none';
-});
+            // Validación: si hay fechas, deben ser ambas
+            if ((fechaInicio || fechaFin) && (!fechaInicio || !fechaFin)) {
+                mostrarError('Fechas incompletas', 'Debes seleccionar ambas fechas para filtrar por rango');
+                return;
+            }
 
-// Cerrar el modal de advertencia al hacer clic en la "X"
-document.querySelector('.close').addEventListener('click', () => {
-    const warningModal = document.getElementById('warningModal');
-    warningModal.style.display = 'none';
-});
+            // Construir URL
+            const params = new URLSearchParams();
+            if (fechaInicio && fechaFin) {
+                params.append('fecha_inicio', fechaInicio);
+                params.append('fecha_fin', fechaFin);
+            }
+            if (categoriaId) params.append('categoria', categoriaId);
+            if (esPDF) params.append('download', 'pdf');
 
-// Cerrar el modal de advertencia al hacer clic fuera del modal
-window.addEventListener('click', (event) => {
-    const warningModal = document.getElementById('warningModal');
-    if (event.target === warningModal) {
-        warningModal.style.display = 'none';
-    }
-});
+            window.location.href = `/reportes_ventas?${params.toString()}`;
+        }
 
-// Descargar PDF al hacer clic en el botón
-document.getElementById('descargar-pdf').addEventListener('click', () => {
-    const fechaInicio = document.getElementById('fecha-inicio').value;
-    const fechaFin = document.getElementById('fecha-fin').value;
+        // Event Listeners
+        document.getElementById('generar-reporte').addEventListener('click', () => generarReporte(false));
+        document.getElementById('descargar-pdf').addEventListener('click', () => generarReporte(true));
 
-    if (!fechaInicio || !fechaFin) {
-        const warningModal = document.getElementById('warningModal');
-        const warningMessage = document.getElementById('warningMessage');
-        warningMessage.textContent = 'Por favor, selecciona ambas fechas para generar el PDF.';
-        warningModal.style.display = 'flex';
-        return;
-    }
+        // Cerrar modal
+        document.getElementById('acceptWarningButton').addEventListener('click', () => {
+            warningModal.style.display = 'none';
+        });
+        document.querySelector('.close').addEventListener('click', () => {
+            warningModal.style.display = 'none';
+        });
+        window.addEventListener('click', (e) => {
+            if (e.target === warningModal) warningModal.style.display = 'none';
+        });
 
-    // Redirigir con parámetro download=pdf
-    window.location.href = `/reportes_ventas?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}&download=pdf`;
-});
-
+        // Cargar valores de filtros desde URL
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('fecha_inicio') || urlParams.has('fecha_fin') || urlParams.has('categoria')) {
+                document.querySelector('.tabla-reportes').style.display = 'block';
+            }
+        });
     </script>
 </body>
 </html>

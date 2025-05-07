@@ -71,14 +71,6 @@
             </div>
         </section>
 
-<!-- Sección de Gráficos y Estadísticas -->
-<section class="graficos">
-    <h2>Estadísticas de Inventario</h2>
-    <div class="graficos-container">
-        <canvas id="graficoVentas"></canvas>
-        <canvas id="graficoStock"></canvas>
-    </div>
-</section>
 
 
         <footer>
@@ -211,92 +203,7 @@
     
             const coloresGrafica = generarColoresGrafica(nombresProductos.length);
     
-            // Gráfica de BARRAS (VENTAS)
-            new Chart(
-                document.getElementById('graficoVentas').getContext('2d'),
-                {
-                    type: 'bar',
-                    data: {
-                        labels: nombresProductos,
-                        datasets: [{
-                            label: 'Unidades Vendidas',
-                            data: ventasProductos,
-                            backgroundColor: coloresGrafica,
-                            borderColor: 'rgba(255, 255, 255, 0.8)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Productos Más Vendidos',
-                                font: { size: 16, weight: 'bold' }
-                            },
-                            legend: { display: false }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: { 
-                                    display: true, 
-                                    text: 'Unidades Vendidas',
-                                    font: { weight: 'bold' }
-                                }
-                            },
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Productos',
-                                    font: { weight: 'bold' }
-                                }
-                            }
-                        }
-                    }
-                }
-            );
-    
-            // Gráfica de DOUGHNUT (STOCK)
-            new Chart(
-                document.getElementById('graficoStock').getContext('2d'),
-                {
-                    type: 'doughnut',
-                    data: {
-                        labels: nombresProductos,
-                        datasets: [{
-                            label: 'Stock Actual',
-                            data: stockProductos,
-                            backgroundColor: coloresGrafica,
-                            borderColor: 'rgba(255, 255, 255, 0.8)',
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Stock por Producto',
-                                font: { size: 16, weight: 'bold' }
-                            },
-                            legend: {
-                                position: 'right',
-                                labels: {
-                                    boxWidth: 20,
-                                    padding: 15,
-                                    font: {
-                                        size: 12
-                                    }
-                                }
-                            }
-                        },
-                        cutout: '60%'
-                    }
-                }
-            );
+           
         })
         .catch(error => {
             console.error("Error al cargar datos:", error);

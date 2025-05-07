@@ -264,22 +264,41 @@ document.querySelectorAll('.btn-eliminar').forEach(btn => {
             productoSeleccionado = null;
         }
 
-        document.getElementById('confirmDelete').addEventListener('click', () => {
-            if (productoSeleccionado) {
-                fetch(`/eliminar_producto/${productoSeleccionado}`, {
-                    method: 'DELETE'
-                })
-                .then(response => {
-                    if (response.ok) {
-                        window.location.reload();
-                    } else {
-                        alert('Error al eliminar el producto');
-                    }
-                })
-                .catch(error => console.error('Error:', error))
-                .finally(() => cerrarModal());
+        document.getElementById('confirmDelete').addEventListener('click', async () => {
+    if (!productoSeleccionado) return;
+    
+    try {
+        const response = await fetch(`/eliminar_producto/${productoSeleccionado}`, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json'
             }
         });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Error al eliminar el producto');
+        }
+        
+        if (data.success) {
+            // Eliminar el elemento del DOM sin recargar
+            const productoElement = document.querySelector(`[data-producto-id="${productoSeleccionado}"]`).closest('.producto');
+            if (productoElement) {
+                productoElement.remove();
+            }
+            mostrarNotificacion(data.message, 'success');
+        } else if (data.showAlert) {
+            mostrarNotificacion(data.error, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarNotificacion(error.message, 'error');
+    } finally {
+        cerrarModal();
+    }
+});
 
         // Cerrar modal al hacer clic fuera
         window.addEventListener('click', (event) => {

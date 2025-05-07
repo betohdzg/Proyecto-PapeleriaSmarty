@@ -83,14 +83,34 @@ def salida_producto_route():
 def obtener_productos_principal():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id_productos, nombre_producto, precio, foto_url, cantidad FROM productos limit 4")
+    
+    # Consulta modificada para obtener productos más vendidos
+    cur.execute("""
+        SELECT 
+            p.id_productos,
+            p.nombre_producto,
+            p.precio,
+            p.foto_url,
+            p.cantidad,
+            COUNT(m.id_moviento) AS total_vendido
+        FROM 
+            productos p
+        LEFT JOIN 
+            movimientos m ON p.id_productos = m.id_productos AND m.tipo = 'salida'
+        GROUP BY 
+            p.id_productos, p.nombre_producto, p.precio, p.foto_url, p.cantidad
+        ORDER BY 
+            total_vendido DESC
+        LIMIT 4
+    """)
+    
     productos = cur.fetchall()
     cur.close()
     conn.close()
     
     productos_list = []
     for p in productos:
-        # Limpia la ruta de la imagen
+        # Limpia la ruta de la imagen (igual que antes)
         foto_url = p[3].replace('\\', '/')  # Convertir barras
         foto_url = foto_url.replace('static/', '')  # Eliminar static/ si existe
         
@@ -102,11 +122,11 @@ def obtener_productos_principal():
             'nombre_producto': p[1],
             'precio': float(p[2]),
             'foto_url': f"/static/{foto_url}",
-            'cantidad': p[4]
+            'cantidad': p[4],
+            'vendidos': p[5]  # Añadimos el campo de cantidad vendida
         })
     
     return jsonify(productos_list)
-
 @salida_producto.route('/obtener_ventas_productos')
 def obtener_ventas_productos():
     conn = get_db_connection()

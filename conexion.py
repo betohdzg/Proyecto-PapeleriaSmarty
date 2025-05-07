@@ -7,7 +7,7 @@ def get_db_connection():
     Función para conectarse a la base de datos PostgreSQL.
     """
     conn = psycopg2.connect(
-        host="192.168.137.106",
+        host="127.0.0.1",
         port="5432",
         dbname="papeleriasmarty",
         user="postgres",

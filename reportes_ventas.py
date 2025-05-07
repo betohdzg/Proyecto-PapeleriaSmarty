@@ -13,32 +13,63 @@ from flask import make_response
 def reportes_ventas():
     fecha_inicio = request.args.get('fecha_inicio')
     fecha_fin = request.args.get('fecha_fin')
+    categoria_id = request.args.get('categoria')  # Nuevo parámetro
     download = request.args.get('download') == 'pdf'
     
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
+    # Obtener categorías para el dropdown (Nuevo)
+    cur.execute("SELECT id_categoria, nombre_categoria FROM categorias ORDER BY nombre_categoria")
+    categorias = cur.fetchall()
+
+    # Construir consulta dinámica
+    query = """
+        SELECT m.id_moviento, m.id_productos, m.tipo, 
+               m.cantidad, m.fecha, m.total_movimiento,
+               p.nombre_producto, c.nombre_categoria
+        FROM movimientos m
+        JOIN productos p ON m.id_productos = p.id_productos
+        JOIN categorias c ON p.id_categoria = c.id_categoria
+        WHERE m.tipo = 'salida'
+    """
+    
+    conditions = []
+    params = []
+    
+    # Filtro por fechas
     if fecha_inicio and fecha_fin:
-        cur.execute("""
-            SELECT m.id_moviento, m.id_productos, m.tipo, 
-                   m.cantidad, m.fecha, m.total_movimiento,
-                   p.nombre_producto
-            FROM movimientos m
-            LEFT JOIN productos p ON m.id_productos = p.id_productos
-            WHERE m.tipo = 'salida'
-            AND m.fecha BETWEEN %s AND %s 
-            ORDER BY m.fecha DESC;
-        """, (fecha_inicio, fecha_fin))
-        movimientos = cur.fetchall()
-        
-        if download:
-            return generar_pdf(movimientos, fecha_inicio, fecha_fin)
-    else:
-        movimientos = []
+        conditions.append("m.fecha BETWEEN %s AND %s")
+        params.extend([fecha_inicio, fecha_fin])
+    
+    # Filtro por categoría (Nuevo)
+    if categoria_id:
+        conditions.append("c.id_categoria = %s")
+        params.append(categoria_id)
+    
+    # Combinar condiciones
+    if conditions:
+        query += " AND " + " AND ".join(conditions)
+    
+    query += " ORDER BY m.fecha DESC;"
+    
+    # Ejecutar consulta
+    cur.execute(query, params)
+    movimientos = cur.fetchall()
+    
+    # Validar si hay filtros aplicados
+    filtros_aplicados = (fecha_inicio and fecha_fin) or categoria_id
+
+    if download and filtros_aplicados:
+        return generar_pdf(movimientos, fecha_inicio or 'todas', fecha_fin or 'todas')
 
     cur.close()
     conn.close()
-    return render_template('reportes_ventas.html', movimientos=movimientos)
+    return render_template('reportes_ventas.html', 
+                         movimientos=movimientos if filtros_aplicados else [],
+                         categorias=categorias,
+                         categoria_seleccionada=categoria_id,
+                         filtros_aplicados=filtros_aplicados)
 
 def generar_pdf(movimientos, fecha_inicio, fecha_fin):
     buffer = BytesIO()

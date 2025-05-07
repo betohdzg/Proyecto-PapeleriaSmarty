@@ -4,7 +4,7 @@ from salida_producto import salida_producto
 from mi_cuenta import mi_cuenta
 from conexion import get_db_connection
 from login import login
-from reportes_ventas import reportes_ventas  # Corregí "reporters_ventas"
+from reportes_ventas import reportes_ventas as generar_reportes  # Cambio de nombre aquí
 from ver_productos import ver_productos_bp  # Corregí "ver_products"
 from editar_producto import producto_bp
 from dotenv import load_dotenv
@@ -52,16 +52,11 @@ app.register_blueprint(salida_producto)
 # Ruta para Mi Cuenta
 app.add_url_rule('/mi_cuenta', 'mi_cuenta', mi_cuenta)
 
-# Ruta para Reportes de Ventas con filtro de fechas
-@app.route('/reportes_ventas/<fecha_inicio>/<fecha_fin>')
-def reportes_ventas_filtrados(fecha_inicio, fecha_fin):
-    return reportes_ventas(fecha_inicio, fecha_fin)
-
-
-# Ruta para Reportes de Ventas sin filtro
+# Ruta para Reportes de Ventas
 @app.route('/reportes_ventas')
-def reportes_ventas_general():
-    return reportes_ventas()  # Llama a la función sin fechas
+def mostrar_reportes_ventas():  # Cambiado el nombre de la función
+    # Pasa todos los parámetros a la función importada
+    return generar_reportes()
 
 # Registrar blueprint sin prefijo para mantener URL simple
 app.register_blueprint(ver_productos_bp)
